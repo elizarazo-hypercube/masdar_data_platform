@@ -1,0 +1,4 @@
+resource_group_name  = "Masdar-DataPlatform"
+storage_account_name = "masdarhqterraform"
+container_name       = "tfstate"
+key                  = "terraform.tfstate"
