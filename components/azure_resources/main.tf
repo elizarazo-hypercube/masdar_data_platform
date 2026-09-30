@@ -24,7 +24,7 @@ provider "azurerm" {
 # }
 
 module "databricks" {
-  source = "../modules/databricks"
+  source = "../../modules/databricks"
   resource_prefix = var.resource_prefix
   environment = var.environment
   location = var.location
