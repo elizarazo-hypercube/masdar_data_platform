@@ -7,7 +7,7 @@ resource "azurerm_databricks_workspace" "databricks" {
   tags                = var.tags
 
   custom_parameters {
-    no_public_ip        = false
+    no_public_ip        = true
     virtual_network_id  = azurerm_virtual_network.main.id
     public_subnet_name  = azurerm_subnet.databricks_host_subnet.name
     private_subnet_name = azurerm_subnet.databricks_private.name

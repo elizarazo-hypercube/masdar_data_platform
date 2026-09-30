@@ -175,59 +175,6 @@ resource "azurerm_subnet_network_security_group_association" "databricks_private
   network_security_group_id = azurerm_network_security_group.databricks_nsg.id
 }
 
-resource "azurerm_subnet" "databricks_private_endpoint" {
-  name                 = "${var.resource_prefix}-databricks-pe-snet-${var.environment}"
-  resource_group_name  = data.azurerm_resource_group.databricks_resource_group.name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = ["10.201.6.0/27"]
-
-  # Optional: only needed if you want NSG/UDR rules to apply to the endpoint.
-  # "Disabled" is the default in azurerm 4.x and is what Microsoft historically required.
-  private_endpoint_network_policies = "Disabled"
-}
-
-# Create a private endpoint for the Databricks workspace
-resource "azurerm_private_endpoint" "databricks_private_endpoint" {
-  name                = "${var.resource_prefix}-databricks-pe-${var.environment}"
-  location            = var.location
-  resource_group_name = data.azurerm_resource_group.databricks_resource_group.name
-  subnet_id           = azurerm_subnet.databricks_private_endpoint.id
-
-  private_service_connection {
-    name                           = "${var.resource_prefix}-databricks-psc-${var.environment}"
-    private_connection_resource_id = azurerm_databricks_workspace.databricks.id
-    subresource_names              = ["databricks_ui_api"]
-    is_manual_connection           = false
-  }
-
-  tags = var.tags
-
-}
-
-# Create a private DNS zone for the Databricks workspace
-resource "azurerm_private_dns_zone" "databricks_private_dns_zone" {
-  name                = "${var.resource_prefix}-databricks-${var.environment}.privatelink.azure.net"
-  resource_group_name = data.azurerm_resource_group.databricks_resource_group.name
-  tags = var.tags
-}
-
-# Create a virtual network link for the Databricks workspace
-resource "azurerm_private_dns_zone_virtual_network_link" "databricks_dns_link" {
-  name                  = "${var.resource_prefix}-databricks-dns-link-${var.environment}"
-  virtual_network_id    = azurerm_virtual_network.main.id
-  private_dns_zone_id   = azurerm_private_dns_zone.databricks_private_dns_zone.id
-  tags = var.tags
-}
-
-# Add a DNS record for the Private Endpoint in the private DNS zone
-resource "azurerm_private_dns_a_record" "databricks_dns_record" {
-  name                = "${var.resource_prefix}-databricks-${var.environment}"
-  private_dns_zone_id = azurerm_private_dns_zone.databricks_private_dns_zone.id
-  ttl                 = 300
-  records             = [azurerm_private_endpoint.databricks_private_endpoint.private_service_connection[0].private_ip_address]
-  tags = var.tags
-}
-
 # resource "azurerm_log_analytics_workspace" "databricks_log_analytics_workspace" {
 #   name                = "${var.resource_prefix}-log-analytics-workspace-${var.environment}"
 #   location            = var.location
